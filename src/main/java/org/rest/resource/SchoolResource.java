@@ -65,6 +65,7 @@ public class SchoolResource {
         return school;
     }
 
+    //TODO Remover este metodo assim que a FCC implementar o MD5 dela.
     private String MD5(String password) {
         try {
             log.info("O password é: " + password);
