@@ -35,7 +35,6 @@ public class SchoolResource {
     }
 
     @POST
-//    @Path("/authenticate/login={login}&password={password}")
     @Path("/authenticate")
     public School authenticate(@HeaderParam("login") String login, @HeaderParam("password") String password) {
         School school = new School();
