@@ -5,17 +5,14 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.config.Configuration;
 import org.rest.mapping.SchoolMapping;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
  * Created by allan on 18/11/16.
  */
-@EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
-@ComponentScan
+@SpringBootApplication
 @EnableJpaRepositories(basePackages = "org.rest.persistence")
 public class Application {
 
