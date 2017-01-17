@@ -17,11 +17,17 @@
 
     <properties>
         <start-class>org.rest.Application</start-class>
+        <property environment="env"/>
+        <start-class>org.rest.Application</start-class>
+        <tomcat.version>8.5.9</tomcat.version>
+        <tomcat.username>admin</tomcat.username>
+        <tomcat.password>a1qu384@1</tomcat.password>
+
         <projectlombok.version>1.16.10</projectlombok.version>
         <mysql.version>5.1.21</mysql.version>
         <java.version>1.7</java.version>
-        <jersey-version>2.24</jersey-version>
         <jackson-version>2.8.5</jackson-version>
+        <modelmapper.version>1.1.0</modelmapper.version>
     </properties>
 
     <dependencies>
@@ -38,30 +44,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- End Spring -->
-
-        <!-- Jersey -->
-        <dependency>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-client</artifactId>
-            <version>${jersey-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.ext</groupId>
-            <artifactId>jersey-spring3</artifactId>
-            <version>${jersey-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jersey.ext</groupId>
-            <artifactId>jersey-bean-validation</artifactId>
-            <version>${jersey-version}</version>
-        </dependency>
-        <!-- End Jersey -->
 
         <!-- Jackson -->
         <dependency>
@@ -97,6 +80,12 @@
             <version>3.0.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.jmnarloch</groupId>
+            <artifactId>modelmapper-spring-boot-starter</artifactId>
+            <version>${modelmapper.version}</version>
+        </dependency>
+
         <!--Test-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -128,7 +117,7 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
-                    <warName>rest-service</warName>
+                    <warName>service</warName>
                 </configuration>
             </plugin>
         </plugins>
@@ -142,25 +131,101 @@
 
     <profiles>
         <profile>
-            <id>dev</id>
+            <id>homologacao</id>
             <properties>
-                <activatedProperties>dev</activatedProperties>
+                <profile.id>homologacao</profile.id>
             </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.cargo</groupId>
+                        <artifactId>cargo-maven2-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>cargo-run</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>redeploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <container>
+                                <containerId>tomcat7x</containerId>
+                                <type>remote</type>
+                                <timeout>0</timeout>
+                            </container>
+                            <configuration>
+                                <type>runtime</type>
+                                <properties>
+                                    <cargo.servlet.port>8080</cargo.servlet.port>
+                                    <cargo.rmi.port>1099</cargo.rmi.port>
+                                    <cargo.tomcat.ajp.port>8009</cargo.tomcat.ajp.port>
+                                    <cargo.hostname>homologacao.obmep.org.br</cargo.hostname>
+                                    <cargo.remote.username>${tomcat.username}</cargo.remote.username>
+                                    <cargo.remote.password>${tomcat.password}</cargo.remote.password>
+                                </properties>
+                            </configuration>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
+
         <profile>
-            <id>test</id>
+            <id>production</id>
             <properties>
-                <activatedProperties>test</activatedProperties>
+                <profile.id>production</profile.id>
             </properties>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <activatedProperties>prod</activatedProperties>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.cargo</groupId>
+                        <artifactId>cargo-maven2-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>cargo-run</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>redeploy</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <container>
+                                <containerId>tomcat7x</containerId>
+                                <type>remote</type>
+                                <timeout>0</timeout>
+                            </container>
+                            <configuration>
+                                <type>runtime</type>
+                                <properties>
+                                    <cargo.servlet.port>8080</cargo.servlet.port>
+                                    <cargo.rmi.port>1099</cargo.rmi.port>
+                                    <cargo.tomcat.ajp.port>8009</cargo.tomcat.ajp.port>
+                                    <cargo.hostname>homologacao.obmep.org.br</cargo.hostname>
+                                    <cargo.remote.username>${tomcat.username}</cargo.remote.username>
+                                    <cargo.remote.password>${tomcat.password}</cargo.remote.password>
+                                </properties>
+                            </configuration>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 

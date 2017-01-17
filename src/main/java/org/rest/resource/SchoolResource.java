@@ -1,71 +1,84 @@
 package org.rest.resource;
 
+import org.modelmapper.ModelMapper;
+import org.rest.dto.SchoolDto;
 import org.rest.exception.SchoolNotFoundException;
 import org.rest.model.School;
 import org.rest.persistence.SchoolDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.inject.Inject;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by allan on 21/11/16.
  */
-@Path("/schools")
-@Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_JSON)
+@RestController
+@RequestMapping("/schools")
 @Component
 public class SchoolResource {
     private final Logger log = LoggerFactory.getLogger(SchoolResource.class.getName());
     private final SchoolDao schoolDao;
+    private final ModelMapper mapper;
 
-    @Inject
-    public SchoolResource(SchoolDao schoolDao) {
+    @Autowired
+    public SchoolResource(SchoolDao schoolDao, ModelMapper mapper) {
         this.schoolDao = schoolDao;
+        this.mapper = mapper;
     }
 
-    @GET
-    public List<School> getAll() {
-        return this.schoolDao.findAll();
+    @RequestMapping
+    public List<SchoolDto> getAll() {
+        List<School> schools;
+        schools = schoolDao.findAll();
+        List<SchoolDto> dtos = new ArrayList<>();
+
+        for (School school : schools) {
+            final SchoolDto schoolDto = mapper.map(school, SchoolDto.class);
+            dtos.add(schoolDto);
+        }
+
+        return dtos;
     }
 
-    @POST
-    @Path("/authenticate")
-    public School authenticate(@HeaderParam("login") String login, @HeaderParam("password") String password) {
-        School school = new School();
+    @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
+    public SchoolDto authenticate(@RequestHeader("login") String login, @RequestHeader("password") String password) {
+        School school;
+        SchoolDto schoolDto = new SchoolDto();
         log.info("O username é: " + login + " e a Senha é: " + password);
         if (login != null && !login.isEmpty() && password != null && !password.isEmpty()) {
             school = this.existSchool(login, password);
             if (school != null && !school.equals("")) {
-                school.setAuthenticated(true);
-                school.setMessage("Login Ok");
-                school = new School(school.getName(), school.getAddress(), school.getCardsLevelOne(),
-                        school.getCardsLevelTwo(), school.getCardsLevelThree(), school.getAuthenticated(),
-                        school.getMessage());
+                schoolDto = mapper.map(school, SchoolDto.class);
+
+                schoolDto.setAuthenticated(true);
+                schoolDto.setMessage("Login Ok");
             } else {
-                school = new School();
-                school.setAuthenticated(false);
-                school.setMessage("Login inválido");
+                schoolDto.setAuthenticated(false);
+                schoolDto.setMessage("Login inválido");
             }
         }
 
-        return school;
+        return schoolDto;
     }
 
     private School existSchool(String login, String password) {
-        School school = this.schoolDao.findSchoolByMecCodeAndPassword(login, MD5(password));
+        School school = schoolDao.findSchoolByMecCodeAndPassword(login, MD5(password));
         if (school == null || school.equals("")) {
             new SchoolNotFoundException(login, MD5(password));
         }
         return school;
     }
 
-    //TODO Remover este metodo assim que a FCC implementar o MD5 dela.
+    // FIXME Deverá ser mantido até que a FCC implemente em seu código.
     private String MD5(String password) {
         try {
             log.info("O password é: " + password);
